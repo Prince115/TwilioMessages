@@ -10,6 +10,7 @@ namespace TwilioSMS
 	{
           private static string phoneNumber { get; set; }
           private static string Body { get; set; }
+          private static bool NewRegister { get; set; }
           private static int chooseOption { get; set; }
 
           //add configurations here
@@ -17,19 +18,32 @@ namespace TwilioSMS
           private static string MessagingServiceSid = "";
           private static string accountSid = "";
           private static string authToken = "";
+
           static void Main(string[] args)
 		{
-			Console.WriteLine("Welcome!");
+               Program program = new Program();
+
+               Console.WriteLine("Welcome!");
 			Console.WriteLine("Select the option:");
 			Console.WriteLine("1. SMS");
 			Console.WriteLine("2. Whatsapp");
 
                chooseOption = Convert.ToInt32(Console.ReadLine());
-               Console.WriteLine("Please Enter sender Number..");
-              
+
                if (chooseOption == 1)
                {
+                
+                    Console.WriteLine("Do you want to register new number(Y/N)?:");
+                    NewRegister = Console.ReadLine()?.ToUpper() == "Y" ? true : false;
+                    Console.WriteLine("Please Enter Number..");
                     phoneNumber = Console.ReadLine();
+                    Console.WriteLine("Please Enter Name..");
+                    string Name = Console.ReadLine();
+                    if (NewRegister)
+                    {
+                         string accountId = program.RegisterNewNumber(phoneNumber, Name);
+                         Console.WriteLine("Number " + phoneNumber + "registerd successfully!: " + accountId);
+                    }     
                }
                else if (chooseOption == 2)
                {
@@ -40,7 +54,8 @@ namespace TwilioSMS
                     Console.WriteLine("Thank you.");
                }
                var messageOptions = new CreateMessageOptions(
-                  new PhoneNumber(phoneNumber));
+                  new PhoneNumber(phoneNumber)
+                  );
                if (chooseOption == 1)
                {
                     //SMS
@@ -66,5 +81,22 @@ namespace TwilioSMS
                Console.WriteLine(message.Uri);
           }
 
+          public string RegisterNewNumber(string newNumber, string name)
+          {
+               this.InitializeTwilio();
+
+               var validationRequest = ValidationRequestResource.Create(
+                   friendlyName: name,
+                   phoneNumber: new Twilio.Types.PhoneNumber(newNumber)
+               );
+
+               return validationRequest.AccountSid;
+               //Console.WriteLine(validationRequest.FriendlyName);
+          }
+
+          public void InitializeTwilio()
+          {
+               TwilioClient.Init(accountSid, authToken);
+          }
 	}
 }
